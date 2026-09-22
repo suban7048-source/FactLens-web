@@ -1,0 +1,735 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description"
+    content="AI-powered Fake News Detection System using Machine Learning. Paste any news article and instantly classify it as Real or Fake with confidence scoring." />
+  <meta name="keywords"
+    content="fake news detection, AI, machine learning, NLP, news classifier, TF-IDF, scikit-learn" />
+  <meta name="author" content="FactLens" />
+  <meta property="og:title" content="FactLens — Detect Fake News Instantly" />
+  <meta property="og:description"
+    content="Machine Learning powered fake news detection. Classify news as Real or Fake with confidence scoring." />
+  <meta property="og:type" content="website" />
+  <title>FactLens — ML-Powered Fake News Detection System</title>
+
+  <!-- Favicon -->
+  <link rel="icon"
+    href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔍</text></svg>" />
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500&display=swap"
+    rel="stylesheet" />
+
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+
+  <!-- Styles -->
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+
+<body data-theme="dark">
+
+  <!-- ── Ambient Side Creative Rails (Left & Right Margins) ──── -->
+  <aside class="side-creative-rail side-rail-left" aria-hidden="true">
+    <div class="rail-indicator"><span class="rail-dot"></span>FACTLENS // VERIFIED ANALYSIS</div>
+    <div class="rail-line"></div>
+    <div class="rail-metric"><span>F1-SCORE</span> 0.962</div>
+  </aside>
+
+  <aside class="side-creative-rail side-rail-right" aria-hidden="true">
+    <div class="rail-indicator"><span class="rail-dot alt"></span>ML CLASSIFIER // REAL-TIME</div>
+    <div class="rail-line"></div>
+    <div class="rail-metric"><span>LATENCY</span> &lt;15ms</div>
+  </aside>
+
+  <!-- ── API Status Bar ─────────────────────────────────────── -->
+  <div class="api-status-bar" id="api-status-bar" role="status" aria-live="polite">
+    <span class="api-status-dot"></span>
+    <span id="api-status-text">Connecting to API…</span>
+  </div>
+
+  <!-- ── Navigation ─────────────────────────────────────────── -->
+  <nav id="navbar" role="navigation" aria-label="Main navigation">
+    <a class="nav-brand" href="#" aria-label="FactLens Home">
+      <div class="nav-logo-icon" aria-hidden="true">🔍</div>
+      <span class="nav-brand-name">Fact<span class="accent">Lens</span></span>
+    </a>
+
+    <div class="nav-links" id="nav-links" role="menubar">
+      <a href="#detector" role="menuitem">Detector</a>
+      <a href="#performance" role="menuitem">Models</a>
+      <a href="#about" role="menuitem">About</a>
+    </div>
+
+    <div class="nav-actions">
+      <button id="theme-toggle" class="theme-btn" aria-label="Toggle color theme">☀️</button>
+      <a href="#detector" class="nav-cta">Try Now →</a>
+      <button class="hamburger" id="hamburger" aria-label="Toggle mobile menu" aria-expanded="false">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </nav>
+
+  <!-- ── Hero Section ───────────────────────────────────────── -->
+  <section id="hero" aria-labelledby="hero-title">
+    <div class="hero-orb-2" aria-hidden="true"></div>
+
+    <!-- Ambient Floating Creatives on Left & Right Flanks -->
+    <div class="hero-flank-decor hero-flank-left" aria-hidden="true">
+      <div class="flank-card flank-card-tl">
+        <div class="flank-icon">🛡️</div>
+        <div class="flank-info">
+          <span class="flank-tag">AUTHENTICITY RADAR</span>
+          <span class="flank-title">Linguistic Syntax & Tone</span>
+        </div>
+      </div>
+      <div class="flank-card flank-card-bl">
+        <div class="flank-icon">⚡</div>
+        <div class="flank-info">
+          <span class="flank-tag">INFERENCE ENGINE</span>
+          <span class="flank-title">&lt; 15ms Real-Time Verdict</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="hero-flank-decor hero-flank-right" aria-hidden="true">
+      <div class="flank-card flank-card-tr">
+        <div class="flank-icon">🧠</div>
+        <div class="flank-info">
+          <span class="flank-tag">NLP PIPELINE</span>
+          <span class="flank-title">15k TF-IDF N-Grams</span>
+        </div>
+      </div>
+      <div class="flank-card flank-card-br">
+        <div class="flank-icon">📊</div>
+        <div class="flank-info">
+          <span class="flank-tag">MODEL ENSEMBLE</span>
+          <span class="flank-title">4 Trained Classifiers</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="hero-inner">
+      <!-- Left: Content -->
+      <div class="hero-content">
+        <div class="hero-badge" aria-label="AI-Powered Detection feature badge">
+          AI-Powered Detection
+        </div>
+
+        <h1 class="hero-title" id="hero-title">
+          Stop Fake News<br />
+          <span class="gradient-text">Before It Spreads</span>
+        </h1>
+
+        <p class="hero-subtitle">
+          Our Machine Learning system analyzes news text in real-time using
+          TF-IDF vectorization and trained classifiers to detect misinformation
+          with high confidence — instantly.
+        </p>
+
+        <div class="hero-actions">
+          <a href="#detector" class="btn-primary" id="hero-cta-btn">
+            <span>🔍</span> Analyze News
+          </a>
+          <a href="#performance" class="btn-ghost" id="hero-models-btn">
+            View Models →
+          </a>
+        </div>
+
+        <div class="hero-stats" aria-label="System statistics">
+          <div class="hero-stat">
+            <div class="hero-stat-num"><span id="stat-acc-hero">95</span>%</div>
+            <div class="hero-stat-label">Accuracy</div>
+          </div>
+          <div class="hero-stat">
+            <div class="hero-stat-num"><span>4</span></div>
+            <div class="hero-stat-label">ML Models</div>
+          </div>
+          <div class="hero-stat">
+            <div class="hero-stat-num"><span>~6K</span></div>
+            <div class="hero-stat-label">Training Samples</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right: Demo Cards -->
+      <div class="hero-visual" aria-hidden="true">
+        <div style="position:relative;">
+          <div class="hero-float-badge">🏆 Best Accuracy: 96.2%</div>
+          <div class="demo-card">
+            <div class="demo-card-header">
+              <span class="demo-card-source">Reuters</span>
+              <span class="demo-badge real">✅ REAL</span>
+            </div>
+            <p class="demo-card-text">
+              "Federal Reserve maintains interest rates, citing stable economic indicators according to officials…"
+            </p>
+            <div class="demo-confidence-bar">
+              <div class="demo-confidence-fill real" style="width:0"></div>
+            </div>
+            <p class="demo-conf-label">Confidence: 94%</p>
+          </div>
+        </div>
+
+        <div class="demo-card">
+          <div class="demo-card-header">
+            <span class="demo-card-source">Unknown</span>
+            <span class="demo-badge fake">🚫 FAKE</span>
+          </div>
+          <p class="demo-card-text">
+            "SHOCKING: Secret government documents EXPOSED revealing 30-year cover-up! They don't want you to know…"
+          </p>
+          <div class="demo-confidence-bar">
+            <div class="demo-confidence-fill fake" style="width:0"></div>
+          </div>
+          <p class="demo-conf-label">Confidence: 88%</p>
+        </div>
+
+        <div class="demo-card" style="display:flex;align-items:center;gap:16px;padding:14px 18px;">
+          <div style="font-size:1.8rem;">🤖</div>
+          <div>
+            <div
+              style="font-size:.78rem;font-weight:700;color:var(--accent-primary);margin-bottom:3px;text-transform:uppercase;letter-spacing:.5px;">
+              ML Pipeline</div>
+            <div style="font-size:.8rem;color:var(--text-muted);line-height:1.4;">
+              TF-IDF → Logistic Regression · SVM · Naive Bayes · Random Forest
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── Detector Section ────────────────────────────────────── -->
+  <section id="detector" class="section" aria-labelledby="detector-title">
+    <div class="section-container">
+      <div class="section-decor-tag decor-left" aria-hidden="true"><span>+</span> 01 // TEXTUAL INPUT SCAN</div>
+      <div class="section-decor-tag decor-right" aria-hidden="true"><span>+</span> 02 // PROBABILITY MATRIX</div>
+
+      <div class="detector-header">
+        <div class="section-label" aria-hidden="true">⚡ Try It Now</div>
+        <h2 class="section-title" id="detector-title">
+          News Text <span class="gradient-text">Analyzer</span>
+        </h2>
+        <p class="section-subtitle" style="margin:0 auto;text-align:center;">
+          Paste any news headline or article below. Our ML model will classify
+          it in seconds with a confidence score.
+        </p>
+      </div>
+
+      <div class="detector-grid">
+        <!-- Input Card -->
+        <div class="glass-card input-card reveal" id="input-card">
+          <div class="input-label" id="news-input-label">
+            <span>📰</span> News Article or Headline
+          </div>
+
+          <textarea id="news-input" aria-labelledby="news-input-label" aria-describedby="char-counter"
+            placeholder="Paste your news article or headline here…&#10;&#10;Tip: You can use the sample buttons below to try a real or fake example."
+            maxlength="50000" spellcheck="true"></textarea>
+
+          <div class="input-footer">
+            <span class="char-counter" id="char-counter" aria-live="polite">0 / 50,000 chars</span>
+            <div class="sample-links">
+              <button class="sample-btn" data-sample="real" title="Load a real news example"
+                aria-label="Load real news sample">
+                📰 Real Sample
+              </button>
+              <button class="sample-btn" data-sample="fake" title="Load a fake news example"
+                aria-label="Load fake news sample">
+                🚫 Fake Sample
+              </button>
+            </div>
+          </div>
+
+          <!-- Error Toast -->
+          <div id="error-toast" class="hidden" role="alert" aria-live="assertive">
+            <span>⚠️</span>
+            <span id="error-msg">An error occurred.</span>
+          </div>
+
+          <div class="btn-group">
+            <button id="detect-btn" class="btn-primary" aria-label="Detect if news is real or fake"
+              style="flex:1;justify-content:center;">
+              <span>🔍</span> Detect Fake News
+              <span style="font-size:.75rem;opacity:.7;margin-left:2px;">(Ctrl+↵)</span>
+            </button>
+            <button id="reset-btn" aria-label="Clear input and results">
+              ↺ Clear
+            </button>
+          </div>
+        </div>
+
+        <!-- Result Panel -->
+        <div class="result-panel" id="result-panel">
+
+          <!-- Placeholder -->
+          <div class="result-placeholder" id="result-placeholder" role="status" aria-live="polite">
+            <div class="placeholder-icon" aria-hidden="true">🧠</div>
+            <div class="placeholder-title">Awaiting Analysis</div>
+            <p class="placeholder-text">
+              Paste a news article on the left and click<br />
+              <strong>Detect Fake News</strong> to get an instant AI verdict.
+            </p>
+          </div>
+
+          <!-- Loading State -->
+          <div id="loading-state" role="status" aria-live="polite" aria-label="Analyzing text">
+            <div class="spinner-ring" aria-hidden="true"></div>
+            <div>
+              <div class="loading-text">Analyzing with AI…</div>
+              <div class="loading-sub">Preprocessing → Vectorizing → Classifying</div>
+            </div>
+          </div>
+
+          <!-- Result Card -->
+          <div id="result-card" class="glass-card" role="region" aria-live="polite" aria-label="Detection result">
+            <div class="result-top">
+              <div id="result-badge" class="result-label-badge fake" aria-live="polite">
+                🚫 Fake News
+              </div>
+              <div id="result-timestamp" style="font-size:.73rem;color:var(--text-muted);"></div>
+            </div>
+
+            <div class="confidence-section">
+              <!-- Confidence Ring -->
+              <div class="confidence-ring-wrap" aria-hidden="true">
+                <svg class="confidence-ring-svg" viewBox="0 0 90 90" aria-hidden="true">
+                  <circle class="ring-bg" cx="45" cy="45" r="39" />
+                  <circle class="ring-fill" cx="45" cy="45" r="39" id="ring-fill" />
+                </svg>
+                <div class="confidence-ring-text">
+                  <span class="confidence-pct" id="confidence-pct">0%</span>
+                  <span class="confidence-pct-label">conf.</span>
+                </div>
+              </div>
+
+              <!-- Bar + label -->
+              <div class="confidence-info" style="flex:1;">
+                <div class="confidence-title">Confidence Score</div>
+                <div class="confidence-bar-wrap" aria-hidden="true">
+                  <div class="confidence-bar-inner" id="bar-inner"></div>
+                </div>
+                <p id="confidence-desc" style="font-size:.78rem;color:var(--text-muted);"></p>
+              </div>
+            </div>
+
+            <div class="result-divider" aria-hidden="true"></div>
+
+            <p class="result-explanation" id="result-explanation">
+              Analysis results will appear here.
+            </p>
+
+            <div class="result-meta">
+              <span>Model</span>
+              <span class="result-meta-dot" aria-hidden="true"></span>
+              <span class="model-name-tag" id="model-name">—</span>
+              <span class="result-meta-dot" aria-hidden="true"></span>
+              <span>Powered by Scikit-learn</span>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ── Model Performance Section ──────────────────────────── -->
+  <section id="performance" class="section" aria-labelledby="perf-title">
+    <div class="section-container">
+      <div class="section-decor-tag decor-left" aria-hidden="true"><span>+</span> 03 // MODEL BENCHMARKS</div>
+      <div class="section-decor-tag decor-right" aria-hidden="true"><span>+</span> 04 // CONFUSION MATRIX</div>
+
+      <div class="perf-header">
+        <div class="section-label" aria-hidden="true">📊 ML Evaluation</div>
+        <h2 class="section-title" id="perf-title">
+          Model <span class="gradient-text">Performance</span>
+        </h2>
+        <p class="section-subtitle" style="margin:0 auto;text-align:center;">
+          Four classifiers trained and evaluated side-by-side.
+          The best-performing model is used for all predictions.
+        </p>
+        <p style="font-size:.8rem;color:var(--text-muted);margin-top:10px;text-align:center;" id="dataset-info">
+          Loading dataset info…
+        </p>
+      </div>
+
+      <!-- Top Metric Cards -->
+      <div class="metrics-grid">
+        <div class="glass-card metric-card reveal">
+          <span class="metric-icon" aria-hidden="true">🎯</span>
+          <div class="metric-name">Accuracy</div>
+          <div class="metric-value" id="stat-accuracy">—</div>
+          <div class="metric-desc">Best model (test set)</div>
+        </div>
+        <div class="glass-card metric-card reveal" style="animation-delay:.1s">
+          <span class="metric-icon" aria-hidden="true">⚡</span>
+          <div class="metric-name">Precision</div>
+          <div class="metric-value" id="stat-precision">—</div>
+          <div class="metric-desc">Positive predictive value</div>
+        </div>
+        <div class="glass-card metric-card reveal" style="animation-delay:.2s">
+          <span class="metric-icon" aria-hidden="true">🔍</span>
+          <div class="metric-name">Recall</div>
+          <div class="metric-value" id="stat-recall">—</div>
+          <div class="metric-desc">Sensitivity / true positive rate</div>
+        </div>
+        <div class="glass-card metric-card reveal" style="animation-delay:.3s">
+          <span class="metric-icon" aria-hidden="true">🏆</span>
+          <div class="metric-name">F1-Score</div>
+          <div class="metric-value" id="stat-f1">—</div>
+          <div class="metric-desc">Harmonic mean of P &amp; R</div>
+        </div>
+      </div>
+
+      <!-- Charts -->
+      <div class="charts-grid">
+        <div class="glass-card chart-card reveal">
+          <div class="chart-card-title">Model Comparison</div>
+          <div class="chart-card-sub">Accuracy · F1-Score · Precision · Recall across all 4 classifiers</div>
+          <div class="chart-wrapper">
+            <canvas id="perf-chart" aria-label="Bar chart comparing model performance metrics"></canvas>
+          </div>
+        </div>
+
+        <div class="glass-card chart-card reveal" style="animation-delay:.15s">
+          <div class="chart-card-title">Confusion Matrix — Best Model</div>
+          <div class="chart-card-sub">
+            Predictions vs actual labels on the held-out test set.
+            Using: <strong id="best-model-name" style="color:var(--accent-primary)">—</strong>
+          </div>
+
+          <div style="display:flex;flex-direction:column;align-items:center;margin-top:8px;">
+            <!-- Matrix labels -->
+            <div style="display:flex;justify-content:center;gap:8px;margin-bottom:6px;width:100%;max-width:260px;">
+              <div style="width:24px;"></div>
+              <div
+                style="flex:1;text-align:center;font-size:.7rem;color:var(--text-muted);font-weight:600;text-transform:uppercase;letter-spacing:.4px;">
+                Pred FAKE</div>
+              <div
+                style="flex:1;text-align:center;font-size:.7rem;color:var(--text-muted);font-weight:600;text-transform:uppercase;letter-spacing:.4px;">
+                Pred REAL</div>
+            </div>
+
+            <div style="display:flex;gap:8px;width:100%;max-width:260px;">
+              <!-- Row labels -->
+              <div style="display:flex;flex-direction:column;gap:8px;justify-content:space-around;width:24px;">
+                <div
+                  style="writing-mode:vertical-lr;transform:rotate(180deg);font-size:.65rem;color:var(--text-muted);font-weight:600;text-transform:uppercase;letter-spacing:.4px;text-align:center;height:60px;display:flex;align-items:center;">
+                  FAKE</div>
+                <div
+                  style="writing-mode:vertical-lr;transform:rotate(180deg);font-size:.65rem;color:var(--text-muted);font-weight:600;text-transform:uppercase;letter-spacing:.4px;text-align:center;height:60px;display:flex;align-items:center;">
+                  REAL</div>
+              </div>
+
+              <!-- 2x2 Matrix -->
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;flex:1;">
+                <div class="cm-cell cm-tn" id="cm-tp" role="cell" aria-label="True Negative">
+                  <span class="cm-num" style="font-size:1.3rem;font-weight:800;font-family:var(--font-mono);">—</span>
+                  <span class="cm-cell-label">TN</span>
+                </div>
+                <div class="cm-cell cm-fp" id="cm-fp" role="cell" aria-label="False Positive">
+                  <span class="cm-num" style="font-size:1.3rem;font-weight:800;font-family:var(--font-mono);">—</span>
+                  <span class="cm-cell-label">FP</span>
+                </div>
+                <div class="cm-cell cm-fn" id="cm-fn" role="cell" aria-label="False Negative">
+                  <span class="cm-num" style="font-size:1.3rem;font-weight:800;font-family:var(--font-mono);">—</span>
+                  <span class="cm-cell-label">FN</span>
+                </div>
+                <div class="cm-cell cm-tp" id="cm-tn" role="cell" aria-label="True Positive">
+                  <span class="cm-num" style="font-size:1.3rem;font-weight:800;font-family:var(--font-mono);">—</span>
+                  <span class="cm-cell-label">TP</span>
+                </div>
+              </div>
+            </div>
+
+            <p style="font-size:.72rem;color:var(--text-muted);margin-top:16px;text-align:center;">
+              TN = True Neg · FP = False Pos · FN = False Neg · TP = True Pos
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Detailed Table -->
+      <div class="glass-card reveal" style="padding:0;overflow:hidden;">
+        <div style="padding:20px 24px 12px;border-bottom:1px solid var(--border-subtle);">
+          <div style="font-size:.95rem;font-weight:700;color:var(--text-primary);">Detailed Metrics Table</div>
+          <div style="font-size:.78rem;color:var(--text-muted);margin-top:2px;">
+            Evaluation on 20% held-out test set · Best model used for predictions
+          </div>
+        </div>
+        <div class="model-table-wrap">
+          <table class="model-table" aria-label="Model performance comparison table">
+            <thead>
+              <tr>
+                <th scope="col">Model</th>
+                <th scope="col">Accuracy</th>
+                <th scope="col">Precision</th>
+                <th scope="col">Recall</th>
+                <th scope="col">F1-Score</th>
+                <th scope="col">Train Time</th>
+              </tr>
+            </thead>
+            <tbody id="metrics-table-body">
+              <tr>
+                <td colspan="6" style="text-align:center;color:var(--text-muted);padding:24px;">
+                  Loading metrics… Make sure the Flask server is running.
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ── About Section ──────────────────────────────────────── -->
+  <section id="about" class="section" aria-labelledby="about-title">
+    <div class="section-container">
+
+      <div class="about-grid">
+        <!-- How It Works -->
+        <div>
+          <div class="section-label" aria-hidden="true">🔧 Under the Hood</div>
+          <h2 class="section-title" id="about-title">
+            How It <span class="gradient-text">Works</span>
+          </h2>
+          <p class="section-subtitle">
+            Five-step ML pipeline from raw text to a confident prediction.
+          </p>
+
+          <div class="steps-list">
+            <div class="step-item reveal">
+              <div class="step-num" aria-hidden="true">1</div>
+              <div class="step-body">
+                <div class="step-title">📝 Input News Text</div>
+                <p class="step-desc">
+                  User submits a headline or full article via the web interface.
+                  Client-side validation ensures minimum quality before sending.
+                </p>
+              </div>
+            </div>
+
+            <div class="step-item reveal" style="animation-delay:.1s">
+              <div class="step-num" aria-hidden="true">2</div>
+              <div class="step-body">
+                <div class="step-title">🧹 Text Preprocessing</div>
+                <p class="step-desc">
+                  NLTK pipeline: lowercase → strip HTML/URLs → remove punctuation
+                  → eliminate stopwords → apply Porter Stemmer for normalization.
+                </p>
+              </div>
+            </div>
+
+            <div class="step-item reveal" style="animation-delay:.2s">
+              <div class="step-num" aria-hidden="true">3</div>
+              <div class="step-body">
+                <div class="step-title">📊 TF-IDF Vectorization</div>
+                <p class="step-desc">
+                  Converts cleaned text into a sparse numerical feature matrix
+                  using Term Frequency-Inverse Document Frequency with bigrams
+                  (15,000 features). The fitted vectorizer is saved and reused.
+                </p>
+              </div>
+            </div>
+
+            <div class="step-item reveal" style="animation-delay:.3s">
+              <div class="step-num" aria-hidden="true">4</div>
+              <div class="step-body">
+                <div class="step-title">🤖 ML Classification</div>
+                <p class="step-desc">
+                  The pre-trained best model (selected from Logistic Regression,
+                  Naive Bayes, SVM, or Random Forest) predicts REAL or FAKE with
+                  a calibrated confidence probability.
+                </p>
+              </div>
+            </div>
+
+            <div class="step-item reveal" style="animation-delay:.4s">
+              <div class="step-num" aria-hidden="true">5</div>
+              <div class="step-body">
+                <div class="step-title">✅ Result &amp; Explanation</div>
+                <p class="step-desc">
+                  The Flask API returns the label, confidence score, and a
+                  context-aware explanation. The frontend animates the result
+                  card and confidence ring for visual clarity.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tech Stack -->
+        <div class="tech-section">
+          <h3 class="tech-heading">Technology Stack</h3>
+
+          <div class="tech-grid">
+            <div class="tech-card reveal">
+              <div class="tech-icon">🐍</div>
+              <div>
+                <div class="tech-name">Python 3</div>
+                <div class="tech-role">Core language</div>
+              </div>
+            </div>
+            <div class="tech-card reveal" style="animation-delay:.05s">
+              <div class="tech-icon">🌶️</div>
+              <div>
+                <div class="tech-name">Flask</div>
+                <div class="tech-role">REST API backend</div>
+              </div>
+            </div>
+            <div class="tech-card reveal" style="animation-delay:.10s">
+              <div class="tech-icon">🤖</div>
+              <div>
+                <div class="tech-name">Scikit-learn</div>
+                <div class="tech-role">ML models &amp; TF-IDF</div>
+              </div>
+            </div>
+            <div class="tech-card reveal" style="animation-delay:.15s">
+              <div class="tech-icon">🐼</div>
+              <div>
+                <div class="tech-name">Pandas / NumPy</div>
+                <div class="tech-role">Data processing</div>
+              </div>
+            </div>
+            <div class="tech-card reveal" style="animation-delay:.20s">
+              <div class="tech-icon">📚</div>
+              <div>
+                <div class="tech-name">NLTK</div>
+                <div class="tech-role">NLP preprocessing</div>
+              </div>
+            </div>
+            <div class="tech-card reveal" style="animation-delay:.25s">
+              <div class="tech-icon">📊</div>
+              <div>
+                <div class="tech-name">Chart.js</div>
+                <div class="tech-role">Performance charts</div>
+              </div>
+            </div>
+            <div class="tech-card reveal" style="animation-delay:.30s">
+              <div class="tech-icon">🌐</div>
+              <div>
+                <div class="tech-name">HTML / CSS / JS</div>
+                <div class="tech-role">Responsive frontend</div>
+              </div>
+            </div>
+            <div class="tech-card reveal" style="animation-delay:.35s">
+              <div class="tech-icon">💾</div>
+              <div>
+                <div class="tech-name">Joblib</div>
+                <div class="tech-role">Model persistence</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Dataset Info Card -->
+          <div class="glass-card reveal" style="margin-top:20px;padding:20px 22px;">
+            <div
+              style="font-size:.75rem;text-transform:uppercase;letter-spacing:.5px;color:var(--text-muted);font-weight:700;margin-bottom:10px;">
+              Dataset</div>
+            <div style="font-size:.9rem;font-weight:600;color:var(--text-primary);margin-bottom:6px;">
+              Fake and Real News Dataset
+            </div>
+            <p style="font-size:.82rem;color:var(--text-secondary);line-height:1.55;">
+              ~6,300 labeled samples (REAL / FAKE) sourced from verified
+              news outlets and known misinformation sites. Each article
+              undergoes preprocessing before training.
+            </p>
+            <div style="display:flex;gap:10px;margin-top:14px;flex-wrap:wrap;">
+              <span
+                style="font-size:.72rem;padding:4px 10px;background:var(--success-bg);color:var(--success);border:1px solid var(--success-border);border-radius:6px;font-weight:600;">
+                ✅ REAL: ~3,100
+              </span>
+              <span
+                style="font-size:.72rem;padding:4px 10px;background:var(--danger-bg);color:var(--danger);border:1px solid var(--danger-border);border-radius:6px;font-weight:600;">
+                🚫 FAKE: ~3,200
+              </span>
+              <span
+                style="font-size:.72rem;padding:4px 10px;background:var(--bg-glass);color:var(--text-muted);border:1px solid var(--border-subtle);border-radius:6px;font-weight:600;">
+                80/20 Train/Test Split
+              </span>
+            </div>
+          </div>
+
+          <!-- Disclaimer -->
+          <div class="glass-card reveal" style="margin-top:16px;padding:16px 20px;border-color:rgba(245,158,11,.25);">
+            <div style="display:flex;gap:10px;align-items:flex-start;">
+              <span style="font-size:1.1rem;">⚠️</span>
+              <div>
+                <div style="font-size:.82rem;font-weight:700;color:var(--warning);margin-bottom:4px;">Disclaimer</div>
+                <p style="font-size:.78rem;color:var(--text-muted);line-height:1.5;">
+                  This tool is a Open-Source Github Project. Always verify
+                  news independently using multiple trusted sources. No ML model
+                  is 100% accurate.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ── Footer ─────────────────────────────────────────────── -->
+  <footer role="contentinfo">
+    <div class="footer-inner">
+      <div>
+        <div class="footer-brand">
+          <div
+            style="width:28px;height:28px;background:linear-gradient(135deg,#6366f1,#8b5cf6);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:14px;"
+            aria-hidden="true">🔍</div>
+          <span class="footer-brand-name">Fact<span style="color:var(--accent-primary)">Lens</span></span>
+        </div>
+        <p class="footer-tagline">
+          Machine Learning powered fake news detection.<br />
+          Built with Python, Flask, and Scikit-learn.
+        </p>
+      </div>
+
+      <div>
+        <div class="footer-col-title">Navigation</div>
+        <nav class="footer-links" aria-label="Footer navigation">
+          <a href="#hero">Home</a>
+          <a href="#detector">Detector</a>
+          <a href="#performance">Model Performance</a>
+          <a href="#about">About</a>
+        </nav>
+      </div>
+
+      <div>
+        <div class="footer-col-title">ML Models</div>
+        <div class="footer-links">
+          <span style="color:var(--text-muted);font-size:.85rem;">Logistic Regression</span>
+          <span style="color:var(--text-muted);font-size:.85rem;">Naive Bayes</span>
+          <span style="color:var(--text-muted);font-size:.85rem;">Support Vector Machine</span>
+          <span style="color:var(--text-muted);font-size:.85rem;">Random Forest</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="footer-bottom">
+      <p>© 2024 FactLens — Open-Source GitHub Project</p>
+      <div class="footer-badges">
+        <span class="footer-badge">Python</span>
+        <span class="footer-badge">Flask</span>
+        <span class="footer-badge">Scikit-learn</span>
+        <span class="footer-badge">NLTK</span>
+      </div>
+    </div>
+  </footer>
+
+  <!-- ── Scripts ─────────────────────────────────────────────── -->
+  <script src="js/app.js"></script>
+
+</body>
+
+</html>

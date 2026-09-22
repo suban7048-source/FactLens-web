@@ -1,0 +1,77 @@
+{
+  "best_model": "Logistic Regression",
+  "dataset_size": 3000,
+  "train_size": 2400,
+  "test_size": 600,
+  "vocab_size": 2242,
+  "models": {
+    "Logistic Regression": {
+      "accuracy": 1.0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1_score": 1.0,
+      "confusion_matrix": [
+        [
+          300,
+          0
+        ],
+        [
+          0,
+          300
+        ]
+      ],
+      "train_time_sec": 0.02
+    },
+    "Naive Bayes": {
+      "accuracy": 1.0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1_score": 1.0,
+      "confusion_matrix": [
+        [
+          300,
+          0
+        ],
+        [
+          0,
+          300
+        ]
+      ],
+      "train_time_sec": 0.0
+    },
+    "SVM": {
+      "accuracy": 1.0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1_score": 1.0,
+      "confusion_matrix": [
+        [
+          300,
+          0
+        ],
+        [
+          0,
+          300
+        ]
+      ],
+      "train_time_sec": 0.07
+    },
+    "Random Forest": {
+      "accuracy": 1.0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1_score": 1.0,
+      "confusion_matrix": [
+        [
+          300,
+          0
+        ],
+        [
+          0,
+          300
+        ]
+      ],
+      "train_time_sec": 0.61
+    }
+  }
+}
