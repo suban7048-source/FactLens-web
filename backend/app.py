@@ -60,9 +60,15 @@ def load_model():
             metrics_data = json.load(f)
         best_name = metrics_data.get('best_model', 'Unknown')
 
-    print(f"✓ Loaded model: {best_name}")
-    print(f"✓ Vectorizer vocabulary: {len(vectorizer.vocabulary_):,} terms")
+    try:
+        print(f"[+] Loaded model: {best_name}")
+        print(f"[+] Vectorizer vocabulary: {len(vectorizer.vocabulary_):,} terms")
+    except Exception:
+        pass
     return True
+
+# Initialize model at startup
+load_model()
 
 
 def get_confidence(model, features) -> float:
