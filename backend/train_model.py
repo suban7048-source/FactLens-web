@@ -21,6 +21,7 @@ import time
 import warnings
 import requests
 import io
+from datetime import datetime, timezone
 
 # Force UTF-8 output so Unicode chars (─, ✓, 🏆) work on Windows cp1252 terminals
 if hasattr(sys.stdout, 'reconfigure'):
@@ -308,8 +309,11 @@ def main():
 
     # ── 3. TF-IDF Vectorization ──────────────────────────────────────────────
     banner("Step 3 / 5 — TF-IDF Vectorization")
-    X_train_text, X_test_text, y_train, y_test = train_test_split(
+    train_val_text, X_test_text, y_train_val, y_test = train_test_split(
         df['clean_text'], y, test_size=0.20, random_state=42, stratify=y
+    )
+    X_train_text, X_val_text, y_train, y_val = train_test_split(
+        train_val_text, y_train_val, test_size=0.20, random_state=42, stratify=y_train_val
     )
 
     vectorizer = TfidfVectorizer(
@@ -320,9 +324,11 @@ def main():
         analyzer='word',
     )
     X_train = vectorizer.fit_transform(X_train_text)
+    X_val    = vectorizer.transform(X_val_text)
     X_test  = vectorizer.transform(X_test_text)
     print(f"  ✓ Vocabulary size : {len(vectorizer.vocabulary_):,}")
     print(f"  ✓ Train samples   : {X_train.shape[0]:,}")
+    print(f"  ✓ Validation samples : {X_val.shape[0]:,}")
     print(f"  ✓ Test samples    : {X_test.shape[0]:,}")
     print(f"  ✓ Feature matrix  : {X_train.shape[1]:,} features")
 
@@ -343,23 +349,23 @@ def main():
         ),
     }
 
-    results = {}
+    validation_results = {}
     trained_models = {}
 
     for name, clf in classifiers.items():
         print(f"\n  Training {name} …", end='', flush=True)
         t0 = time.time()
         clf.fit(X_train, y_train)
-        y_pred = clf.predict(X_test)
+        y_pred = clf.predict(X_val)
         elapsed = time.time() - t0
 
-        acc  = accuracy_score(y_test, y_pred)
-        prec = precision_score(y_test, y_pred, zero_division=0)
-        rec  = recall_score(y_test, y_pred, zero_division=0)
-        f1   = f1_score(y_test, y_pred, zero_division=0)
-        cm   = confusion_matrix(y_test, y_pred).tolist()
+        acc  = accuracy_score(y_val, y_pred)
+        prec = precision_score(y_val, y_pred, zero_division=0)
+        rec  = recall_score(y_val, y_pred, zero_division=0)
+        f1   = f1_score(y_val, y_pred, zero_division=0)
+        cm   = confusion_matrix(y_val, y_pred).tolist()
 
-        results[name] = {
+        validation_results[name] = {
             'accuracy':         round(float(acc),  4),
             'precision':        round(float(prec), 4),
             'recall':           round(float(rec),  4),
@@ -376,8 +382,32 @@ def main():
     # ── 5. Select Best Model & Save ──────────────────────────────────────────
     banner("Step 5 / 5 — Saving Best Model")
 
-    best_name  = max(results, key=lambda k: results[k]['f1_score'])
-    best_model = trained_models[best_name]
+    best_name = max(validation_results, key=lambda k: validation_results[k]['f1_score'])
+
+    # Refit every candidate on train + validation data. The test set remains
+    # untouched until this final evaluation.
+    vectorizer = TfidfVectorizer(
+        max_features=15000, ngram_range=(1, 2), sublinear_tf=True,
+        min_df=2, analyzer='word',
+    )
+    X_train_final = vectorizer.fit_transform(train_val_text)
+    X_test_final = vectorizer.transform(X_test_text)
+    final_models = {}
+    results = {}
+    for name, clf in classifiers.items():
+        clf.fit(X_train_final, y_train_val)
+        y_pred = clf.predict(X_test_final)
+        results[name] = {
+            'accuracy': round(float(accuracy_score(y_test, y_pred)), 4),
+            'precision': round(float(precision_score(y_test, y_pred, zero_division=0)), 4),
+            'recall': round(float(recall_score(y_test, y_pred, zero_division=0)), 4),
+            'f1_score': round(float(f1_score(y_test, y_pred, zero_division=0)), 4),
+            'confusion_matrix': confusion_matrix(y_test, y_pred).tolist(),
+            'validation_f1_score': validation_results[name]['f1_score'],
+            'train_time_sec': validation_results[name]['train_time_sec'],
+        }
+        final_models[name] = clf
+    best_model = final_models[best_name]
 
     print(f"\n  🏆  Best model: {best_name}  "
           f"(F1 = {results[best_name]['f1_score']:.4f})")
@@ -401,10 +431,17 @@ def main():
     metadata = {
         'best_model':    best_name,
         'dataset_size':  int(len(df)),
-        'train_size':    int(X_train.shape[0]),
+        'train_size':    int(X_train_final.shape[0]),
+        'validation_size': int(X_val.shape[0]),
         'test_size':     int(X_test.shape[0]),
         'vocab_size':    int(len(vectorizer.vocabulary_)),
+        'selection_metric': 'validation_f1_score',
+        'random_state': 42,
+        'trained_at': datetime.now(timezone.utc).isoformat(),
+        'preprocessing': 'lowercase, HTML/URL/email removal, stopwords, Porter stemming',
+        'dataset_source': 'local CSV, public mirror, or deterministic synthetic fallback',
         'models':        results,
+        'validation_models': validation_results,
     }
     with open(meta_path, 'w') as f:
         json.dump(metadata, f, indent=2)
@@ -416,7 +453,7 @@ def main():
     banner("TRAINING COMPLETE — Ready to serve predictions!")
 
     # Print full classification report for best model
-    y_pred_best = best_model.predict(X_test)
+    y_pred_best = best_model.predict(X_test_final)
     print(f"\nClassification Report — {best_name}:\n")
     print(classification_report(y_test, y_pred_best, target_names=['FAKE', 'REAL']))
 

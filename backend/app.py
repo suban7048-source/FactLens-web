@@ -47,6 +47,7 @@ vectorizer  = None
 best_model  = None
 best_name   = 'Unknown'
 metrics_data = {}
+UNCERTAINTY_THRESHOLD = 0.65
 
 def load_model():
     global vectorizer, best_model, best_name, metrics_data
@@ -175,8 +176,13 @@ def build_indicators(text: str) -> list[dict]:
     return indicators[:4]
 
 
-def build_assessment(label: str, confidence: float) -> dict:
+def build_assessment(label: str, confidence: float, uncertain: bool = False) -> dict:
     """Translate model confidence into a cautious user-facing assessment."""
+    if uncertain:
+        return {
+            "level": "Insufficient evidence",
+            "guidance": "The model is uncertain. Treat this result as a prompt to investigate, not as a verdict.",
+        }
     if confidence >= 0.85:
         level = "Likely misleading pattern" if label == 'FAKE' else "Likely credible pattern"
         guidance = "Verify the central claims with an independent, reputable source before relying on them."
@@ -253,12 +259,15 @@ def predict():
     label_int  = int(best_model.predict(features)[0])
     label      = 'REAL' if label_int == 1 else 'FAKE'
     confidence = get_confidence(best_model, features)
+    uncertain = confidence < UNCERTAINTY_THRESHOLD
+    verdict = 'UNCERTAIN' if uncertain else label
     explanation = build_explanation(label, confidence)
     indicators = build_indicators(text)
-    assessment = build_assessment(label, confidence)
+    assessment = build_assessment(label, confidence, uncertain)
 
     return jsonify({
         'label':       label,
+        'verdict':     verdict,
         'confidence':  round(confidence, 4),
         'model':       best_name,
         'explanation': explanation,

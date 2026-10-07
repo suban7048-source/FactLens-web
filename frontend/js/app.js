@@ -230,11 +230,13 @@ function showResult(data) {
     els.detectBtn.setAttribute('aria-busy', 'false');
   }
 
-  const isReal      = data.label === 'REAL';
-  const labelClass  = isReal ? 'real' : 'fake';
+  const verdict     = data.verdict || data.label;
+  const isUncertain = verdict === 'UNCERTAIN';
+  const isReal      = verdict === 'REAL';
+  const labelClass  = isUncertain ? 'uncertain' : (isReal ? 'real' : 'fake');
   const pct         = Math.round(data.confidence * 100);
-  const icon        = isReal ? '✅' : '🚫';
-  const label       = isReal ? 'Real News' : 'Fake News';
+  const icon        = isUncertain ? '⚠️' : (isReal ? '✅' : '🚫');
+  const label       = isUncertain ? 'Needs Verification' : (isReal ? 'Real News' : 'Fake News');
 
   // Badge
   if (els.resultBadge) {
@@ -245,8 +247,8 @@ function showResult(data) {
   // Confidence text
   if (els.confidencePct) {
     els.confidencePct.textContent = `${pct}%`;
-    els.confidencePct.style.color = isReal
-      ? 'var(--success)' : 'var(--danger)';
+    els.confidencePct.style.color = isUncertain
+      ? 'var(--warning)' : (isReal ? 'var(--success)' : 'var(--danger)');
   }
 
   // Ring + bar animation

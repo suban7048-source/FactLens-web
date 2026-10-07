@@ -32,6 +32,12 @@ This will:
 - Compare all models (accuracy, precision, recall, F1)
 - Save the best model to `backend/models/`
 
+Model selection uses a stratified train/validation/test workflow: models are
+selected by validation F1, then retrained on the combined training and
+validation data before final test evaluation. `metrics.json` records the split
+sizes, selection metric, training timestamp, preprocessing description, and
+dataset source.
+
 Expected output:
 ```
 ────────────────────────────────────────────────────────────
@@ -138,11 +144,16 @@ The model with the highest **F1-Score** on the test set is automatically selecte
 ```json
 {
   "label": "REAL",
+  "verdict": "REAL",
   "confidence": 0.9421,
   "model": "SVM",
   "explanation": "This text exhibits hallmarks of credible journalism..."
 }
 ```
+
+`verdict` may be `UNCERTAIN` when confidence is below the configured
+threshold. An uncertain result is a prompt to verify the source and claims,
+not a factual verdict.
 
 ---
 

@@ -1196,6 +1196,12 @@ body {
   box-shadow: 0 0 20px rgba(16,185,129,0.15);
 }
 
+.result-label-badge.uncertain {
+  background: rgba(245, 158, 11, 0.12);
+  color: var(--warning);
+  border-color: rgba(245, 158, 11, 0.35);
+}
+
 /* Confidence Ring */
 .confidence-section {
   display: flex;
@@ -1234,6 +1240,7 @@ body {
 
 .ring-fill.fake  { stroke: var(--danger);  }
 .ring-fill.real  { stroke: var(--success); }
+.ring-fill.uncertain { stroke: var(--warning); }
 
 .confidence-ring-text {
   position: absolute;
@@ -1286,6 +1293,7 @@ body {
 
 .confidence-bar-inner.fake { background: var(--danger); }
 .confidence-bar-inner.real { background: var(--success); }
+.confidence-bar-inner.uncertain { background: var(--warning); }
 
 .confidence-info p {
   font-size: 0.9rem;
