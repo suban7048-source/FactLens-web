@@ -1,0 +1,11 @@
+import { createFileRoute, Link } from '@tanstack/react-router';
+import { ArrowUpRight } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { pageMeta } from '@/lib/page-meta';
+import editorialImage from '@/assets/editorial.jpg';
+
+export const Route = createFileRoute('/')({ head: () => pageMeta('FactLens — A clearer perspective on the news', 'Explore news text with machine-learning classification. Find context, understand confidence, and think critically before sharing.'), component: Index });
+
+function Index() {
+  return <main className="editorial-main"><div className="editorial-layout"><div className="min-w-0"><div className="eyebrow">FactLens / Independent perspective</div><h1 className="hero-title">QUESTION<br />THE <em>HEADLINE.</em></h1><p className="hero-copy">Information moves fast. Perspective takes a closer look. FactLens examines the language of news to help you pause, question, and read between the lines.</p><div className="hero-actions"><Button variant="editorial" asChild><Link to="/detector">Check a claim <ArrowUpRight /></Link></Button><Button variant="editorialOutline" asChild><Link to="/methodology">View methodology</Link></Button></div></div><aside className="editorial-sidebar" aria-label="The FactLens approach"><div className="proof-point"><span className="label">01 / The approach</span><h2>Language first.</h2><p>Patterns in the text, not just the headline.</p></div><div className="proof-point"><span className="label">02 / The perspective</span><h2>Beyond a label.</h2><p>A prediction with confidence and context.</p></div><div className="proof-point"><span className="label">03 / The principle</span><h2>Stay curious.</h2><p>Question the result. Check the original source.</p></div><div className="editorial-note"><p className="italic">A prediction is a starting point, not a verdict. The most important lens is still your own judgment.</p><small>The FactLens perspective</small></div></aside></div><figure className="photo-band"><figcaption className="photo-caption"><span>Field notes / A closer look at information</span><span>Pause. Question. Verify.</span></figcaption><img src={editorialImage} width={1536} height={768} alt="A magnifying glass over newspapers, bringing the details into focus" /></figure></main>;
+}
