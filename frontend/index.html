@@ -234,6 +234,21 @@
             placeholder="Paste your news article or headline here…&#10;&#10;Tip: You can use the sample buttons below to try a real or fake example."
             maxlength="50000" spellcheck="true"></textarea>
 
+          <div class="source-fields" aria-label="Optional source information">
+            <label>
+              <span>Publisher or source (optional)</span>
+              <input id="source-name" type="text" maxlength="160" placeholder="e.g. Reuters, BBC, personal blog" />
+            </label>
+            <label>
+              <span>Article URL (optional)</span>
+              <input id="source-url" type="url" maxlength="500" placeholder="https://example.com/article" />
+            </label>
+            <label>
+              <span>Publication date (optional)</span>
+              <input id="published-date" type="date" />
+            </label>
+          </div>
+
           <div class="input-footer">
             <span class="char-counter" id="char-counter" aria-live="polite">0 / 50,000 chars</span>
             <div class="sample-links">
@@ -326,12 +341,25 @@
               Analysis results will appear here.
             </p>
 
+            <div class="assessment-box" id="assessment-box">
+              <div class="assessment-heading">Verification guidance</div>
+              <div class="assessment-level" id="assessment-level">—</div>
+              <p id="assessment-guidance">Use multiple trusted sources to verify important claims.</p>
+            </div>
+
+            <div class="indicator-section">
+              <div class="indicator-heading">Signals detected in this text</div>
+              <div class="indicator-list" id="indicator-list"></div>
+            </div>
+
+            <div class="source-summary" id="source-summary"></div>
+
             <div class="result-meta">
               <span>Model</span>
               <span class="result-meta-dot" aria-hidden="true"></span>
               <span class="model-name-tag" id="model-name">—</span>
               <span class="result-meta-dot" aria-hidden="true"></span>
-              <span>Powered by Scikit-learn</span>
+              <span id="analysis-time">Analysis time unavailable</span>
             </div>
           </div>
 
@@ -431,7 +459,7 @@
 
               <!-- 2x2 Matrix -->
               <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;flex:1;">
-                <div class="cm-cell cm-tn" id="cm-tp" role="cell" aria-label="True Negative">
+                <div class="cm-cell cm-tn" id="cm-tn" role="cell" aria-label="True Negative">
                   <span class="cm-num" style="font-size:1.3rem;font-weight:800;font-family:var(--font-mono);">—</span>
                   <span class="cm-cell-label">TN</span>
                 </div>
@@ -443,7 +471,7 @@
                   <span class="cm-num" style="font-size:1.3rem;font-weight:800;font-family:var(--font-mono);">—</span>
                   <span class="cm-cell-label">FN</span>
                 </div>
-                <div class="cm-cell cm-tp" id="cm-tn" role="cell" aria-label="True Positive">
+                <div class="cm-cell cm-tp" id="cm-tp" role="cell" aria-label="True Positive">
                   <span class="cm-num" style="font-size:1.3rem;font-weight:800;font-family:var(--font-mono);">—</span>
                   <span class="cm-cell-label">TP</span>
                 </div>

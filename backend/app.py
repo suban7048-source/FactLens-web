@@ -16,6 +16,9 @@ Start the server:
 import os
 import json
 import math
+import re
+from datetime import datetime, timezone
+from urllib.parse import urlparse
 import joblib
 
 from flask import Flask, request, jsonify, send_from_directory, abort
@@ -130,6 +133,62 @@ def build_explanation(label: str, confidence: float) -> str:
             )
 
 
+def build_indicators(text: str) -> list[dict]:
+    """Return transparent, text-based signals that may warrant verification."""
+    indicators = []
+    checks = [
+        (
+            re.search(r'\b(breaking|shocking|bombshell|exposed|urgent|miracle)\b', text, re.I),
+            "Sensational wording",
+            "Uses emotionally charged terms that can pressure readers to react before verifying the claim.",
+        ),
+        (
+            re.search(r'\b(they|them|deep state|globalist|elite)\b', text, re.I),
+            "Vague attribution",
+            "Refers to unnamed groups or people instead of identifying a verifiable source.",
+        ),
+        (
+            re.search(r'\b(share this|before it gets deleted|they don.t want you to know)\b', text, re.I),
+            "Urgency or sharing pressure",
+            "Encourages immediate sharing or suggests suppression without providing independent evidence.",
+        ),
+        (
+            not re.search(r'\b(according to|reported by|study|research|officials|department|agency)\b', text, re.I),
+            "Limited attribution",
+            "No clear source, study, organization, or named authority was detected in the submitted text.",
+        ),
+        (
+            len(re.findall(r'!', text)) >= 3,
+            "Heavy exclamation use",
+            "Repeated exclamation marks can indicate an emotionally persuasive presentation style.",
+        ),
+    ]
+    for matched, title, detail in checks:
+        if matched:
+            indicators.append({"title": title, "detail": detail})
+
+    if not indicators:
+        indicators.append({
+            "title": "Measured presentation",
+            "detail": "No strong stylistic warning signals were detected; this is not proof that the claims are true.",
+        })
+    return indicators[:4]
+
+
+def build_assessment(label: str, confidence: float) -> dict:
+    """Translate model confidence into a cautious user-facing assessment."""
+    if confidence >= 0.85:
+        level = "Likely misleading pattern" if label == 'FAKE' else "Likely credible pattern"
+        guidance = "Verify the central claims with an independent, reputable source before relying on them."
+    elif confidence >= 0.65:
+        level = "Needs verification"
+        guidance = "The text has mixed signals. Check the source, date, named evidence, and original reporting."
+    else:
+        level = "Insufficient evidence"
+        guidance = "The model is uncertain. Treat this result as a prompt to investigate, not as a verdict."
+    return {"level": level, "guidance": guidance}
+
+
 # ─── Frontend Routes ──────────────────────────────────────────────────────────
 @app.route('/')
 def index():
@@ -164,7 +223,13 @@ def predict():
     if not data:
         return jsonify({'error': 'Request body must be JSON.'}), 400
 
-    text = data.get('text', '').strip()
+    text = data.get('text', '').strip() if isinstance(data.get('text', ''), str) else ''
+    source = data.get('source', '').strip() if isinstance(data.get('source', ''), str) else ''
+    source_url = data.get('source_url', '').strip() if isinstance(data.get('source_url', ''), str) else ''
+    published_date = data.get('published_date', '').strip() if isinstance(data.get('published_date', ''), str) else ''
+    parsed_url = urlparse(source_url)
+    if source_url and parsed_url.scheme not in {'http', 'https'}:
+        return jsonify({'error': 'Source URL must use http:// or https://.'}), 400
 
     # Input validation
     if not text:
@@ -189,12 +254,22 @@ def predict():
     label      = 'REAL' if label_int == 1 else 'FAKE'
     confidence = get_confidence(best_model, features)
     explanation = build_explanation(label, confidence)
+    indicators = build_indicators(text)
+    assessment = build_assessment(label, confidence)
 
     return jsonify({
         'label':       label,
         'confidence':  round(confidence, 4),
         'model':       best_name,
         'explanation': explanation,
+        'assessment': assessment,
+        'indicators': indicators,
+        'source': {
+            'name': source,
+            'url': source_url,
+            'published_date': published_date,
+        },
+        'analyzed_at': datetime.now(timezone.utc).isoformat(),
     })
 
 

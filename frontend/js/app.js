@@ -52,6 +52,14 @@ const els = {
   barInner:       $('bar-inner'),
   resultExplain:  $('result-explanation'),
   modelName:      $('model-name'),
+  sourceName:     $('source-name'),
+  sourceUrl:      $('source-url'),
+  publishedDate:  $('published-date'),
+  assessmentLevel: $('assessment-level'),
+  assessmentGuidance: $('assessment-guidance'),
+  indicatorList:  $('indicator-list'),
+  sourceSummary:  $('source-summary'),
+  analysisTime:   $('analysis-time'),
   apiStatusBar:   $('api-status-bar'),
   apiStatusText:  $('api-status-text'),
   metricsTable:   $('metrics-table-body'),
@@ -229,9 +237,54 @@ function showResult(data) {
     els.resultExplain.textContent = data.explanation;
   }
 
+  if (els.assessmentLevel && els.assessmentGuidance) {
+    els.assessmentLevel.textContent = data.assessment?.level || 'Needs verification';
+    els.assessmentGuidance.textContent =
+      data.assessment?.guidance || 'Verify important claims with independent sources.';
+  }
+
+  if (els.indicatorList) {
+    els.indicatorList.replaceChildren();
+    (data.indicators || []).forEach(indicator => {
+      const item = document.createElement('div');
+      item.className = 'indicator-item';
+      const title = document.createElement('strong');
+      title.textContent = indicator.title;
+      const detail = document.createElement('span');
+      detail.textContent = indicator.detail;
+      item.append(title, detail);
+      els.indicatorList.appendChild(item);
+    });
+  }
+
+  if (els.sourceSummary) {
+    const source = data.source || {};
+    const values = [source.name, source.published_date].filter(Boolean);
+    const safeUrl = typeof source.url === 'string' &&
+      /^https?:\/\//i.test(source.url) ? source.url : '';
+    els.sourceSummary.replaceChildren();
+    if (safeUrl) {
+      const link = document.createElement('a');
+      link.href = safeUrl;
+      link.target = '_blank';
+      link.rel = 'noopener noreferrer';
+      link.textContent = source.name || 'Open submitted source';
+      els.sourceSummary.append('Source: ', link);
+      if (values.length > 1) els.sourceSummary.append(` · Published ${source.published_date}`);
+    } else if (values.length) {
+      els.sourceSummary.textContent = `Source: ${values.join(' · ')}`;
+    }
+  }
+
   // Model name
   if (els.modelName) {
     els.modelName.textContent = data.model;
+  }
+  if (els.analysisTime) {
+    const analyzedAt = data.analyzed_at ? new Date(data.analyzed_at) : null;
+    els.analysisTime.textContent = analyzedAt && !Number.isNaN(analyzedAt.getTime())
+      ? `Analyzed ${analyzedAt.toLocaleString()}`
+      : 'Analysis time unavailable';
   }
 
   // Show card
@@ -267,10 +320,16 @@ async function handleDetect() {
   if (els.detectBtn) els.detectBtn.disabled = true;
 
   try {
+    const payload = {
+      text,
+      source: els.sourceName?.value.trim() || '',
+      source_url: els.sourceUrl?.value.trim() || '',
+      published_date: els.publishedDate?.value || '',
+    };
     const resp = await fetch(ENDPOINTS.predict, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ text }),
+      body: JSON.stringify(payload),
       signal: AbortSignal.timeout(30000),
     });
 
@@ -302,6 +361,9 @@ function handleReset() {
     els.newsInput.dispatchEvent(new Event('input'));
     els.newsInput.focus();
   }
+  [els.sourceName, els.sourceUrl, els.publishedDate].forEach(field => {
+    if (field) field.value = '';
+  });
   showPlaceholder();
 }
 
