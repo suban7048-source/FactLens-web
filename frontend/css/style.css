@@ -1039,6 +1039,10 @@ body {
   transform: none;
 }
 
+#detect-btn[aria-busy="true"] {
+  cursor: wait;
+}
+
 #reset-btn {
   padding: 16px 24px;
   background: transparent;
@@ -1369,6 +1373,12 @@ body {
 .source-summary a {
   color: var(--accent-primary);
   font-weight: 600;
+}
+
+.metrics-error {
+  text-align: center;
+  color: var(--danger);
+  padding: 24px;
 }
 
 .result-meta {
@@ -1977,6 +1987,14 @@ footer {
 
   .model-table { font-size: 0.78rem; }
   .model-table th, .model-table td { padding: 10px 12px; }
+
+  .btn-group {
+    flex-direction: column;
+  }
+
+  #reset-btn {
+    width: 100%;
+  }
 
   .nav-cta { display: none; }
 }

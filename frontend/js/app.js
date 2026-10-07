@@ -40,6 +40,7 @@ const els = {
   newsInput:      $('news-input'),
   charCounter:    $('char-counter'),
   detectBtn:      $('detect-btn'),
+  loadingText:    $('loading-text'),
   resetBtn:       $('reset-btn'),
   loadingState:   $('loading-state'),
   resultCard:     $('result-card'),
@@ -92,12 +93,18 @@ function toggleTheme() {
 function initNav() {
   if (els.hamburger && els.navLinks) {
     els.hamburger.addEventListener('click', () => {
-      els.navLinks.classList.toggle('open');
+      const isOpen = els.navLinks.classList.toggle('open');
+      els.hamburger.setAttribute('aria-expanded', String(isOpen));
+      els.hamburger.setAttribute('aria-label', isOpen ? 'Close mobile menu' : 'Open mobile menu');
     });
 
     // Close on link click
     els.navLinks.querySelectorAll('a').forEach(link => {
-      link.addEventListener('click', () => els.navLinks.classList.remove('open'));
+      link.addEventListener('click', () => {
+        els.navLinks.classList.remove('open');
+        els.hamburger.setAttribute('aria-expanded', 'false');
+        els.hamburger.setAttribute('aria-label', 'Open mobile menu');
+      });
     });
   }
 
@@ -172,6 +179,11 @@ function showLoading() {
     els.resultCard.style.display = 'none';
   }
   if (els.errorToast)   els.errorToast.classList.remove('visible');
+  if (els.detectBtn) {
+    els.detectBtn.disabled = true;
+    els.detectBtn.setAttribute('aria-busy', 'true');
+  }
+  if (els.loadingText) els.loadingText.textContent = 'Analyzing with AI…';
 }
 
 function showError(msg) {
@@ -181,6 +193,10 @@ function showError(msg) {
     els.errorMsg.textContent = msg;
     els.errorToast.classList.add('visible');
     setTimeout(() => els.errorToast.classList.remove('visible'), 6000);
+  }
+  if (els.detectBtn) {
+    els.detectBtn.disabled = false;
+    els.detectBtn.setAttribute('aria-busy', 'false');
   }
 }
 
@@ -209,6 +225,10 @@ function animateRing(pct, labelClass) {
 function showResult(data) {
   if (els.loadingState) els.loadingState.classList.remove('active');
   if (els.placeholder)  els.placeholder.classList.add('hidden');
+  if (els.detectBtn) {
+    els.detectBtn.disabled = false;
+    els.detectBtn.setAttribute('aria-busy', 'false');
+  }
 
   const isReal      = data.label === 'REAL';
   const labelClass  = isReal ? 'real' : 'fake';
@@ -293,6 +313,7 @@ function showResult(data) {
     // Force reflow for animation
     void els.resultCard.offsetHeight;
     els.resultCard.classList.add('visible');
+    els.resultCard.focus({ preventScroll: true });
   }
 
   // Scroll result into view on mobile
@@ -317,8 +338,6 @@ async function handleDetect() {
   }
 
   showLoading();
-  if (els.detectBtn) els.detectBtn.disabled = true;
-
   try {
     const payload = {
       text,
@@ -351,7 +370,10 @@ async function handleDetect() {
       showError(`Unexpected error: ${err.message}`);
     }
   } finally {
-    if (els.detectBtn) els.detectBtn.disabled = false;
+    if (els.detectBtn) {
+      els.detectBtn.disabled = false;
+      els.detectBtn.setAttribute('aria-busy', 'false');
+    }
   }
 }
 
@@ -376,11 +398,24 @@ async function loadMetrics() {
     const resp = await fetch(ENDPOINTS.metrics, {
       signal: AbortSignal.timeout(8000),
     });
-    if (!resp.ok) return;
+    if (!resp.ok) {
+      showMetricsError('Metrics are currently unavailable.');
+      return;
+    }
     const data = await resp.json();
     renderMetrics(data);
   } catch {
-    // Silently fail — metrics are supplementary
+    showMetricsError('Metrics could not be loaded. Check the API connection and try again.');
+  }
+}
+
+function showMetricsError(message) {
+  if (els.metricsTable) {
+    els.metricsTable.innerHTML = `
+      <tr>
+        <td colspan="6" class="metrics-error" role="alert">${message}</td>
+      </tr>
+    `;
   }
 }
 
@@ -391,13 +426,26 @@ function renderMetrics(data) {
 
   if (!modelNames.length) return;
 
+  const bestMetrics = models[bestName] || models[modelNames[0]];
+  const heroAccuracy = $('stat-acc-hero');
+  const heroModelCount = $('stat-model-count');
+  const heroDatasetSize = $('stat-dataset-size');
+  if (heroAccuracy && bestMetrics?.accuracy != null) {
+    heroAccuracy.textContent = Math.round(bestMetrics.accuracy * 100);
+  }
+  if (heroModelCount) heroModelCount.textContent = modelNames.length;
+  if (heroDatasetSize && data.dataset_size) {
+    heroDatasetSize.textContent = data.dataset_size >= 1000
+      ? `~${Math.round(data.dataset_size / 1000)}K`
+      : data.dataset_size.toLocaleString();
+  }
+
   // Update best model badge in header
   if (els.bestModelBadge) {
     els.bestModelBadge.textContent = bestName;
   }
 
   // Update top stat cards
-  const bestMetrics = models[bestName] || models[modelNames[0]];
   if (bestMetrics) {
     setStatCard('stat-accuracy',  bestMetrics.accuracy);
     setStatCard('stat-precision', bestMetrics.precision);

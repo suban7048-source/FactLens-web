@@ -148,11 +148,11 @@
             <div class="hero-stat-label">Accuracy</div>
           </div>
           <div class="hero-stat">
-            <div class="hero-stat-num"><span>4</span></div>
+            <div class="hero-stat-num"><span id="stat-model-count">4</span></div>
             <div class="hero-stat-label">ML Models</div>
           </div>
           <div class="hero-stat">
-            <div class="hero-stat-num"><span>~6K</span></div>
+            <div class="hero-stat-num"><span id="stat-dataset-size">~6K</span></div>
             <div class="hero-stat-label">Training Samples</div>
           </div>
         </div>
@@ -235,15 +235,17 @@
             maxlength="50000" spellcheck="true"></textarea>
 
           <div class="source-fields" aria-label="Optional source information">
-            <label>
+            <label for="source-name">
               <span>Publisher or source (optional)</span>
-              <input id="source-name" type="text" maxlength="160" placeholder="e.g. Reuters, BBC, personal blog" />
+              <input id="source-name" type="text" maxlength="160" autocomplete="organization"
+                placeholder="e.g. Reuters, BBC, personal blog" />
             </label>
-            <label>
+            <label for="source-url">
               <span>Article URL (optional)</span>
-              <input id="source-url" type="url" maxlength="500" placeholder="https://example.com/article" />
+              <input id="source-url" type="url" maxlength="500" inputmode="url"
+                placeholder="https://example.com/article" />
             </label>
-            <label>
+            <label for="published-date">
               <span>Publication date (optional)</span>
               <input id="published-date" type="date" />
             </label>
@@ -271,6 +273,7 @@
 
           <div class="btn-group">
             <button id="detect-btn" class="btn-primary" aria-label="Detect if news is real or fake"
+              aria-busy="false"
               style="flex:1;justify-content:center;">
               <span>🔍</span> Detect Fake News
               <span style="font-size:.75rem;opacity:.7;margin-left:2px;">(Ctrl+↵)</span>
@@ -298,13 +301,14 @@
           <div id="loading-state" role="status" aria-live="polite" aria-label="Analyzing text">
             <div class="spinner-ring" aria-hidden="true"></div>
             <div>
-              <div class="loading-text">Analyzing with AI…</div>
+              <div class="loading-text" id="loading-text">Analyzing with AI…</div>
               <div class="loading-sub">Preprocessing → Vectorizing → Classifying</div>
             </div>
           </div>
 
           <!-- Result Card -->
-          <div id="result-card" class="glass-card" role="region" aria-live="polite" aria-label="Detection result">
+          <div id="result-card" class="glass-card" role="region" aria-live="polite"
+            aria-label="Detection result" tabindex="-1">
             <div class="result-top">
               <div id="result-badge" class="result-label-badge fake" aria-live="polite">
                 🚫 Fake News
