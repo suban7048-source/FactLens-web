@@ -1,4 +1,9 @@
 {
+  "functions": {
+    "api/**/*.py": {
+      "excludeFiles": "{node_modules,src,public,.vercel,.lovable}/**"
+    }
+  },
   "rewrites": [
     {
       "source": "/api/(.*)",

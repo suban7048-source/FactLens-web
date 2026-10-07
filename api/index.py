@@ -5,8 +5,11 @@ import os
 # In Vercel's serverless environment, only /tmp is writable.
 # Set NLTK_DATA to /tmp so downloads go there if needed.
 os.environ.setdefault('NLTK_DATA', '/tmp/nltk_data')
-import nltk
-nltk.data.path.insert(0, '/tmp/nltk_data')
+try:
+    import nltk
+    nltk.data.path.insert(0, '/tmp/nltk_data')
+except ImportError:
+    pass
 
 # ── Add backend directory to path ─────────────────────────────────────────────
 backend_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'backend'))
